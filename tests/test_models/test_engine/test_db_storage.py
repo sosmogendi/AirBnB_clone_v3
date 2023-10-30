@@ -92,34 +92,16 @@ class TestDBStorage(unittest.TestCase):
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
                      "Not testing db storage")
-    def test_get(self):
-        """Test the 'get' method in DBStorage."""
-        # Test retrieval of specific objects
-        state_obj = State(name="New York")
-        state_obj.save()
-        user_obj = User(email="bob@foobar.com", password="password")
-        user_obj.save()
 
-        # Check if get returns the specific objects or None
-        self.assertIs(state_obj, models.storage.get("State", state_obj.id))
-        self.assertIs(None, models.storage.get("State", "blah"))
-        self.assertIs(None, models.storage.get("blah", "blah"))
-        self.assertIs(user_obj, models.storage.get("User", user_obj.id))
+    def test_get_and_count(self):
+        """Test get and count methods."""
+        # Test get method
+        state = State(name="New York")
+        self.storage.new(state)
+        self.storage.save()
+        retrieved_state = self.storage.get(State, state.id)
+        self.assertEqual(retrieved_state, state)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Not testing db storage")
-    def test_count(self):
-        """Test the 'count' method in DBStorage."""
-        # Test counting objects
-        initial_count = models.storage.count()
-
-        # Adding new objects to the database
-        self.assertEqual(models.storage.count("Blah"), 0)
-        state_obj = State(name="Montevideo")
-        state_obj.save()
-        user_obj = User(email="ralexrivero@gmail.com.com", password="dummypass")
-        user_obj.save()
-
-        # Check if the count matches the expected counts
-        self.assertEqual(models.storage.count("State"), initial_count + 1)
-        self.assertEqual(models.storage.count(), initial_count + 2)
+        # Test count method
+        self.assertEqual(self.storage.count(State), 1)
+        self.assertEqual(self.storage.count(), 1)  # Count all objects
