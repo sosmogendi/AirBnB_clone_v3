@@ -87,19 +87,39 @@ class TestFileStorage(unittest.TestCase):
     def test_save(self):
         """Test that save properly saves objects to file.json"""
 
+class TestDBStorage(unittest.TestCase):
+    """Test the DBStorage class"""
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                     "Not testing db storage")
     def test_get(self):
-        """Test the 'get' method of DBStorage and FileStorage.
-        """
-        storage = DBStorage()
-        dict1 = {"state_name": "California"}
-        instance = State(**dict1)
-        storage.new(instance)
-        storage.save()
-        get_instance = storage.get(State, instance.id)
-        self.assertEqual(get_instance, instance)
+        """Test the 'get' method in DBStorage."""
+        # Test retrieval of specific objects
+        state_obj = State(name="New York")
+        state_obj.save()
+        user_obj = User(email="bob@foobar.com", password="password")
+        user_obj.save()
 
+        # Check if get returns the specific objects or None
+        self.assertIs(state_obj, models.storage.get("State", state_obj.id))
+        self.assertIs(None, models.storage.get("State", "blah"))
+        self.assertIs(None, models.storage.get("blah", "blah"))
+        self.assertIs(user_obj, models.storage.get("User", user_obj.id))
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                     "Not testing db storage")
     def test_count(self):
-        """
-        Test the 'count' method of DBStorage and FileStorage.
-        """
+        """Test the 'count' method in DBStorage."""
+        # Test counting objects
+        initial_count = models.storage.count()
 
+        # Adding new objects to the database
+        self.assertEqual(models.storage.count("Blah"), 0)
+        state_obj = State(name="Montevideo")
+        state_obj.save()
+        user_obj = User(email="ralexrivero@gmail.com.com", password="dummypass")
+        user_obj.save()
+
+        # Check if the count matches the expected counts
+        self.assertEqual(models.storage.count("State"), initial_count + 1)
+        self.assertEqual(models.storage.count(), initial_count + 2)
